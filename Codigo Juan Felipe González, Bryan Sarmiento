@@ -1,0 +1,138 @@
+Main: MOV ACC, CTE 	 #Carga la direccion de Q al ACC
+	Q		 	 #CTE direccion de Q
+	MOV DPTR, ACC      #Mueve la direccion de Q en el ACC al DPTR
+	MOV ACC, [DPTR] 	 #Carga [Q] en el ACC
+	MOV A, ACC		 #Carga Q en registro A
+	MOV ACC, CTE	 #Carga el un 1 en el ACC
+	0x01			 #CTE
+	AND ACC, A		 #ACC <--- ACC & A (Hallar LSB)
+	MOV A, ACC		 #Carga en el registro A el valor de ACC
+	MOV ACC, CTE	 #Carga la direccion de QLSB en el ACC
+	QLSB			 #CTE - direccion de QLSB
+	MOV DPTR, ACC	 #Mueve la direccion de QLSB al DPTR
+	MOV ACC, A		 #Mueve el valor de A al ACC
+	MOV [DPTR], ACC 	 #Guarda el ACC en QLSB
+
+Verifica los ultimos numeros (00,01,11,10)
+LOOP:	MOV ACC, CIE	 #Carga la direccion de QLSB en el ACC
+	QLSB			 #CTE direccion de QLSB
+	MOV DPTR, ACC	 #Carga la direccion de QLSB al ACC
+	MOV ACC, [DPTR] 	 #Carga el [QSLB] en el ACC
+	MOV A, ACC		 #Mueve el QSLB al registro A
+	MOV ACC, CTE	 #Mover 1 en el ACC
+	0xFF			 #CTE -1
+	ADD ACC, A		 #ACC QSLB -1
+	Jz CTE		 #Verificar si el ACC es 0
+     	 QL1                	#Si ACC es 0 ejecute QL1
+	JMP CTE	      	#Verificar si ACC no es
+	QL0			#Si ACC no es salte y ejecute QL0
+
+
+QL1:	MOV ACC, CTE	 #Se carga la direccion de QMIN en el ACC
+	QMIN			 #CTE direccion de QMIN
+	MOV DPTR, ACC	 #Mover la direccion de QMIN al DPTR
+	MOV ACC, [DPTR] 	 #Carga [QMIN] en el ACC
+	MOV A, ACC		 #Mueve el QMIN al registro
+	MOV ACC, CTE	 #Mover-1 en el ACC
+	0xFF			 #CTE-1
+	ADD ACC, A		 #ACC QSLB -1
+	JZ CTE		 #Verifique si el ACC es 0
+	DEFAULT		 #Si es 0 salte y ejecute DEFAULT
+	Jmp cte		 #Verifique si el ACC no es 0
+	ONEZERO           	 #Si no es 0 salte y ejecute ONEZERO
+
+
+QL0:	MOV ACC, CTE	 #Carga la direccion de QMIN al ACC
+	QMIN			 #CTE - direccion de QMIN
+	MOV DPTR, ACC	 #Carga la direccion de QMIN al DPTR
+	MOV ACC, [DPTR] 	 #Carga [OMIN] en el ACC	
+	INV ACC		 #One's complement de QMIN
+	MOV A, ACC		 #Mover el -QMIN al registro A
+	MOV ACC, CTE	 #Cargar un 1 en el ACC
+	0x01			 #CTE +1
+	ADD ACC, A		 #ACC -QMIN+1
+	JZ CTE		 #Verifique si el ACC es
+	ZEROONE		 #Si es 0 salte y ejecute ZEROONE
+	JMP CTE		 #Verifique si el ACC no es
+	DEFAULT		 #Si no es 0 salte y ejecute DEFAULT
+
+
+ONEZERO: 
+	MOV ACC, CTE 	 #Cargar la direccion de M en el ACC
+	M			 #CTE - direccion de M
+	MOV DPTR, ACC   	 #Mover la direccion de M en el DPTR
+	MOV ACC, [DPTR]    #Carga [M] en el ACC
+	INV ACC		 #One's complementt de M
+	MOV A, ACC		 #Mover el - M al registro A
+	MOV ACC, CTE	 #Carga un 1 en el ACC
+	0x01			 #CTE +1
+	ADD ACC, A		 #ACC = -M+1
+	MOV A, ACC		 #Carga -M+1 al registro A
+	MOV ACC, CTE	 #Carga la direccion de N en el ACC
+	N			 #CTE direccion de N
+	MOV DPTR, ACC	 #Carga la direccion de N en el DPTR
+	MOV ACC, [DPTR]    #Carga [N] en el ACC
+	ADD ACC, A 		 #ACC= N+A
+	MOV [DPTR], ACC 	 #Guarda el valor del ACC en N
+	JMP CTE 		 #Salte a la siguiente constante
+	DEFAULT		 #CTE- Instrucción DEFAULT
+
+
+ZEROONE: 
+	MOV ACC, CTE 	#Carga la direccion de M en el ACC
+	M			#CTE - direccion de M
+	MOV DPTR, ACC	#Mover la direccion de M en el DPTR
+	MOV ACC, [DPTR] 	#Carga [M] en el ACC
+	MOV A, ACC	 	#Carga M en el registro A
+	MOV ACC, CTE	#Carga la direccion de N en el ACC
+	N			#CTE direccion de N
+	MOV DPTR, ACC 	#Carga la direccion de N en el ACC
+	MOV ACC, [DPTR] 	#Carga [N] en el ACC
+	ADD ACC, A		#ACC = M+N
+	MOV [DPTR], ACC   #Guarda el valor del ACC en N
+
+
+DEFAULT: 
+	MOV ACC, CTE      	#Carga la direccion de Q en el ACC
+	Q	 		#CTE direccion de Q
+	MOV DPTR, ACC 	#Mover la direccion de Q en el DPTR
+	MOV ACC, [DPTR]   	#Carga [Q] en el ACC
+ 	MOV A, ACC		#Carga Q en el registro A
+ 	MOV ACC, CTE 	#Carga un 1 en el ACC	
+	0x01			#CTE+ 1
+	AND ACC, A		#AACC <--- ACC & A (Hallar LSB) 1
+	MOV A, ACC		#Carga Q+1 en el registro A
+	MOV ACC , CE	#Carga la direccion de QLSB en el ACC
+	QLSB			#CTE direccion de QLSB
+	MOV DPTR, ACC 	#Carga la direccion de QLSB en el DPTR
+	MOV ACC, A		#Carga el valor del registro A en el ACC
+	MOV [DPTR], ACC 	#Guarda ACC en QLSB
+	MOV ACC, CTE	#Carga la direccion de N en el ACC
+	N 	 	 	#CTE direccion de N
+	MOV DPTR, ACC	#Mover 1a direccion de N en el DPTR
+	MOV ACC, [DPTR] 	#Carga [N] en el ACC
+	MOV A, ACC 		#Carga N en el registro A
+	MOV ACC, CTE	#Carga un 1 en el ACC
+	0x01			#CTE
+	AND ACC, A 		#ACC <--- ACC & A (Hallar LSB)
+	JZ CTE 		#Verificar si el ACC es 0
+	ALSB0 		#Si es 0 salte u ejecute ALSB0
+	MOV ACC, CTE 	#Carga la direccion de QMSB en el ACC
+	QMSB 			#CTE direccion de QMSB
+	MOV DPTR, ACC 	#Carga la direccion de QMSB en el DPTR
+	MOV ACC, CTE 	#Carga 10000000 en el ACC
+	0x80 			#CTE +10000000
+	MOV [DPTR], ACC 	#Guarda el ACC en QMSB
+
+SAIGONO: 
+	HALT			#FIN DEL PROGRAMA
+
+	Q:	0x01		#Asignacion de memoria a Q
+	QLSB: 0x00		#Asignacion de memoria a QLSB
+	QMIN: 0x00		#Asignacion de memoria a QMIN
+	M:	0x02		#Asignacion de memoria a M
+	N:	0x00		#Asignacion de memoria a N
+	QMSB: 0x00		#Asignacion de memoria a QMSB
+	COUT: 0x08		#Asignacion de memoria a COUT
+
+
